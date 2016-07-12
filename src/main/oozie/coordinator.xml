@@ -1,5 +1,4 @@
-<coordinator-app name="leadreporting"
-                 frequency="${coord:days(1)}"
+<coordinator-app name="lead-reporting" frequency="${coord:minutes(15)}"
                  start="${startDate}"
                  end="${endDate}"
                  timezone="UTC"
@@ -11,18 +10,19 @@
     <!-- Format of startDate and endDate is: YYYY-MM-DDTMM:SSZ-->
     <datasets>
         <!-- Input datasets-->
-        <dataset name="lead-input" frequency="${coord:days(1)}"
+        <dataset name="lead-input" frequency="${coord:minutes(15)}"
                  initial-instance="2014-01-01T00:00Z" timezone="UTC">
-            <uri-template>${nameNode}/${leadLocation}/${YEAR}/${MONTH}/${DAY}</uri-template>
+            <uri-template>${nameNode}/${leadreportLocation}/${YEAR}/${MONTH}/${DAY}</uri-template>
             <done-flag></done-flag>
         </dataset>
     </datasets>
     <input-events>
-        <data-in name="pricing-input-daily" dataset="lead-input">
+        <data-in name="lead-input-di" dataset="lead-input">
             <instance>${coord:current(-1)}</instance>
         </data-in>
     </input-events>
-
+    <output-events>
+    </output-events>
     <action>
         <workflow>
             <app-path>${workflowAppPath}</app-path>
@@ -35,10 +35,14 @@
                     <name>nameNode</name>
                     <value>${nameNode}</value>
                 </property>
-
-
-
-
+                <property>
+                    <name>queueName</name>
+                    <value>default</value>
+                </property>
+                <property>
+                    <name>leadInputFile</name>
+                    <value>${coord:dataIn('lead-input-dain')}/*</value>
+                </property>
             </configuration>
         </workflow>
     </action>

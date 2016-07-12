@@ -32,15 +32,18 @@ public class leadProducerFirehouse {
         AWSCredentials credentials = CredentialUtils.getCredentialsProvider().getCredentials();
 
         //Instantiate firehouse Client
-        AmazonKinesisFirehoseClient firehoseClient = new AmazonKinesisFirehoseClient(credentials,
-                ConfigurationUtils.getClientConfigWithUserAgent());
+        AmazonKinesisFirehoseClient firehoseClient = new AmazonKinesisFirehoseClient(credentials);
+                //ConfigurationUtils.getClientConfigWithUserAgent());
         // Validate that the stream exists and is active
         validateStream(firehoseClient, streamName);
 
         // Repeatedly send stock trades with a 100 milliseconds wait in between
         StreamGenerator stockTradeGenerator = new StreamGenerator();
-        LeadData leadinfo = stockTradeGenerator.getRandomTrade();
-        sendLeadInfo(leadinfo, firehoseClient, streamName);
+        for(int i=0;i<15;i++) {
+
+            LeadData leadinfo = stockTradeGenerator.getRandomTrade();
+            sendLeadInfo(leadinfo, firehoseClient, streamName);
+        }
         /*while(true) {
             LeadData leadinfo = stockTradeGenerator.getRandomTrade();
             sendLeadInfo(leadinfo, firehoseClient, streamName);

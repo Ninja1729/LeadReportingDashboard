@@ -18,8 +18,8 @@ import static writer.StreamWriter.*;
  */
 public class leadProducerKinesis {
     public static void main(String args[]) throws Exception {
-        String streamName = "leadreportingdelvstream";
-        String regionName = "us-west-2  ";
+        String streamName = "nintestdelvstr";
+        String regionName = "us-east-1";
         Region region = RegionUtils.getRegion(regionName);
         if (region == null) {
             System.err.println(regionName + " is not a valid AWS region.");
