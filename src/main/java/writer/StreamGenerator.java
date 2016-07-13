@@ -17,7 +17,14 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 import java.sql.Timestamp;
 import java.util.Date;
-
+import java.io.*;
+import java.util.*;
+import java.net.*;
+import org.apache.hadoop.fs.*;
+import org.apache.hadoop.conf.*;
+import org.apache.hadoop.io.*;
+import org.apache.hadoop.mapred.*;
+import org.apache.hadoop.util.*;
 /**
  * Created by nkandavel on 7/7/16.
  */
@@ -55,12 +62,13 @@ public class StreamGenerator
      * Return a random email with a unique id every time.
      *
      */
-    public LeadData getRandomTrade() {
+    public LeadData getRandomTrade()  {
         // pick a random email
         LeadEmail leadEmail = LEAD_EMAILS.get(random.nextInt(LEAD_EMAILS.size()));
 
         Date date1= new java.util.Date();
         SimpleDateFormat dt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+
 
         return new LeadData(id.getAndIncrement(),dt.format(date1),leadEmail.newold,leadEmail.email);
     }
