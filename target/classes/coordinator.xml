@@ -1,0 +1,15 @@
+<coordinator-app name="ninja-cordinator" frequency="${coord:days(1)}"
+                 start="2016-07-18T14:40Z"
+                 end="${ed}"
+                 timezone="UTC"
+                 xmlns="uri:oozie:coordinator:0.2">
+    <controls>
+        <concurrency>1</concurrency>
+    </controls>
+
+    <action>
+        <workflow>
+            <app-path>/user/nkandavel/testaws/</app-path>
+        </workflow>
+    </action>
+</coordinator-app>

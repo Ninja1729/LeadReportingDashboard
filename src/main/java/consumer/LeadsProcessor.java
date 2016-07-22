@@ -44,6 +44,8 @@ public class LeadsProcessor implements IRecordProcessor {
     /**
      * {@inheritDoc}
      */
+    // TODO: 7/22/16 remove hardcode for elastic search 
+    // TODO: 7/22/16 catch exception in lower level 
     public void initialize(String shardId) {
         System.out.print("am here baby!");
         settings = Settings.settingsBuilder()

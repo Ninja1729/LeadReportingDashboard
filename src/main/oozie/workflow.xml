@@ -5,7 +5,7 @@
         <java>
             <job-tracker>${jobTracker}</job-tracker>
             <name-node>${nameNode}</name-node>
-            <main-class>writer.StreamWriter</main-class>
+            <main-class>writer.LeadProducerFirehouse</main-class>
         </java>
         <ok to="end"/>
         <error to="kill"/>

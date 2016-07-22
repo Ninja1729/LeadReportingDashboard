@@ -22,9 +22,10 @@
         <install.group>nkandavel</install.group>
         <!-- HDFS installation users -->
         <hdfs.user>nkandavel</hdfs.user>
+        <uvleadsales.user>nkandavel</uvleadsales.user>
         <dwh.eng.user>nkandavel</dwh.eng.user>
-        <local.install.dir>/home/nkandavel/opt/truecar/leadstreaming</local.install.dir>
-        <hdfs.oozie.dir>/user/nkandavel/apps/leadstreaming/oozie-workflow</hdfs.oozie.dir>
+        <local.install.dir>/home/nkandavel/testaws</local.install.dir>
+        <hdfs.oozie.dir>/user/nkandavel/testaws</hdfs.oozie.dir>
     </properties>
 
     <dependencies>
@@ -86,6 +87,178 @@
     </dependencies>
 
 
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/scripts/sysconfig</directory>
+                <targetPath>${project.build.directory}/sysconfig</targetPath>
+                <filtering>true</filtering>
+            </resource>
+            <resource>
+                <directory>src/main/oozie</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <plugins>
+            <!-- Set up Manifest info -->
+            <plugin>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.0</version>
+                <executions>
+                    <execution>
+                        <id>with-deps</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>with-deps</shadedClassifierName>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <activation>
+                <os>
+                    <family>linux</family>
+                </os>
+                <file>
+                    <exists>/usr/local/bin/rpmbuild</exists>
+                </file>
+            </activation>
+            <id>rpmbuild</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>rpm-maven-plugin</artifactId>
+                        <version>2.1-alpha-4</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>attached-rpm</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <summary>Lead Reporting Job</summary>
+                            <group>Truecar/BI</group>
+                            <copyright>proprietary</copyright>
+                            <needarch>noarch</needarch>
+                            <targetOS>linux</targetOS>
+                            <requires>
+                                <require>jdk &gt;= 1.7.0</require>
+                            </requires>
+                            <mappings>
+                                <!-- Install oozie workflows and its resources/properties -->
+                                <mapping>
+                                    <directory>${local.install.dir}/oozie</directory>
+                                    <filemode>755</filemode>
+                                    <username>${install.user}</username>
+                                    <groupname>${install.group}</groupname>
+                                    <!-- Include sub-workflows directories-->
+                                    <directoryIncluded>true</directoryIncluded>
+                                    <sources>
+                                        <source>
+                                            <location>src/main/oozie/</location>
+                                        </source>
+                                    </sources>
+                                </mapping>
+
+
+
+                                <!-- Install your jar with dependencies to lib -->
+                                <mapping>
+                                    <directory>${local.install.dir}/lib</directory>
+                                    <filemode>755</filemode>
+                                    <username>${install.user}</username>
+                                    <groupname>${install.group}</groupname>
+                                    <directoryIncluded>false</directoryIncluded>
+                                    <artifact>
+                                        <classifiers>
+                                            <classifier>with-deps</classifier>
+                                        </classifiers>
+                                    </artifact>
+                                </mapping>
+                            </mappings>
+                            <postinstallScriptlet>
+                                <script>
+                                    # Substitute environmental values
+                                    python /usr/bin/tplize.py /etc/template_values \
+                                    ${local.install.dir}/oozie/coordinator.properties
+
+
+
+                                    chown -R ${uvleadsales.user} ${local.install.dir}
+
+                                    # Create project directory in HDFS
+                                    echo "Checking for ${hdfs.oozie.dir} existence"
+                                    sudo -u ${uvleadsales.user} hadoop fs -test -d ${hdfs.oozie.dir}
+                                    if [ "$?" = "0" ]; then
+                                    echo "Deleting existing workflow in ${hdfs.oozie.dir}"
+                                    sudo -u ${uvleadsales.user} hadoop fs -rm -r -skipTrash ${hdfs.oozie.dir}
+                                    fi
+                                    sudo -u ${uvleadsales.user} hadoop fs -mkdir -p ${hdfs.oozie.dir}
+
+                                    # Install oozie workflows
+                                    echo "Installing oozie files"
+                                    sudo -u ${uvleadsales.user} hadoop fs -copyFromLocal ${local.install.dir}/oozie/* \
+                                    ${hdfs.oozie.dir}
+
+                                    # Install the jar
+                                    echo "Installing uvleadsales jar"
+                                    sudo -u ${uvleadsales.user} hadoop fs -mkdir -p ${hdfs.oozie.dir}/lib
+                                    sudo -u ${uvleadsales.user} hadoop fs -copyFromLocal ${local.install.dir}/lib/*${version}-with-deps.jar \
+                                    ${hdfs.oozie.dir}/lib
+
+                                    echo "Installation completed successfully"
+                                </script>
+                            </postinstallScriptlet>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <distributionManagement>
+        <repository>
+            <id>tcinternal</id>
+            <name>libs-release</name>
+            <url>http://maven1.code.wc.truecarcorp.com:8081/artifactory/libs-release-local</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>libs-snapshot</name>
+            <url>http://maven1.code.wc.truecarcorp.com:8081/artifactory/libs-snapshot-local</url>
+        </snapshotRepository>
+    </distributionManagement>
 
 
 
