@@ -6,7 +6,6 @@
             <job-tracker>${jobTracker}</job-tracker>
             <name-node>${nameNode}</name-node>
             <main-class>writer.StreamWriter</main-class>
-            <arg>${leadInputFile}</arg>
         </java>
         <ok to="end"/>
         <error to="kill"/>
@@ -16,3 +15,4 @@
     </kill>
     <end name="end"/>
 </workflow-app>
+

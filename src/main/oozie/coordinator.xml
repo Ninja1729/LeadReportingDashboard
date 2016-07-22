@@ -1,49 +1,15 @@
-<coordinator-app name="lead-reporting" frequency="${coord:minutes(15)}"
-                 start="${startDate}"
-                 end="${endDate}"
+<coordinator-app name="ninja-cordinator" frequency="${coord:minutes(1440)}"
+                 start="2016-07-18T14:40Z"
+                 end="${ed}"
                  timezone="UTC"
                  xmlns="uri:oozie:coordinator:0.2">
     <controls>
         <concurrency>1</concurrency>
     </controls>
 
-    <!-- Format of startDate and endDate is: YYYY-MM-DDTMM:SSZ-->
-    <datasets>
-        <!-- Input datasets-->
-        <dataset name="lead-input" frequency="${coord:minutes(15)}"
-                 initial-instance="2014-01-01T00:00Z" timezone="UTC">
-            <uri-template>${nameNode}/${leadreportLocation}/${YEAR}/${MONTH}/${DAY}</uri-template>
-            <done-flag></done-flag>
-        </dataset>
-    </datasets>
-    <input-events>
-        <data-in name="lead-input-di" dataset="lead-input">
-            <instance>${coord:current(-1)}</instance>
-        </data-in>
-    </input-events>
-    <output-events>
-    </output-events>
     <action>
         <workflow>
-            <app-path>${workflowAppPath}</app-path>
-            <configuration>
-                <property>
-                    <name>jobTracker</name>
-                    <value>${jobTracker}</value>
-                </property>
-                <property>
-                    <name>nameNode</name>
-                    <value>${nameNode}</value>
-                </property>
-                <property>
-                    <name>queueName</name>
-                    <value>default</value>
-                </property>
-                <property>
-                    <name>leadInputFile</name>
-                    <value>${coord:dataIn('lead-input-dain')}/*</value>
-                </property>
-            </configuration>
+            <app-path>/user/nkandavel/testaws/</app-path>
         </workflow>
     </action>
 </coordinator-app>

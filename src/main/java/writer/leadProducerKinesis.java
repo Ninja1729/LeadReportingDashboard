@@ -21,10 +21,7 @@ public class leadProducerKinesis {
         String streamName = "nintestdelvstr";
         String regionName = "us-east-1";
         Region region = RegionUtils.getRegion(regionName);
-        if (region == null) {
-            System.err.println(regionName + " is not a valid AWS region.");
-            System.exit(1);
-        }
+
 
         //Get the credentials
         AWSCredentials credentials = CredentialUtils.getCredentialsProvider().getCredentials();

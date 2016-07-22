@@ -1,12 +1,15 @@
 package writer;
 
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.kinesis.AmazonKinesis;
 import com.amazonaws.services.kinesis.AmazonKinesisClient;
 import com.amazonaws.services.kinesisfirehose.AmazonKinesisFirehoseClient;
 import model.LeadData;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import utils.ConfigurationUtils;
 import utils.CredentialUtils;
 
@@ -19,38 +22,42 @@ import static writer.StreamWriter.*;
 public class leadProducerFirehouse {
 
 
-    public static void main(String args[]) throws Exception {
-        String streamName = "nintestdelvstr";
-        String regionName = "us-east-1";
-        Region region = RegionUtils.getRegion(regionName);
-        if (region == null) {
-            System.err.println(regionName + " is not a valid AWS region.");
-            System.exit(1);
-        }
+    public static void main(String args[])  {
+        try {
+            String streamName = "nintestdelvstr";
+            String regionName = "us-east-1";
+            Region region = RegionUtils.getRegion(regionName);
+            if (region == null) {
+                System.err.println(regionName + " is not a valid AWS region.");
+                System.exit(1);
+            }
 
-        //Get the credentials
-        AWSCredentials credentials = CredentialUtils.getCredentialsProvider().getCredentials();
+            //Get the credentials
+            //AWSCredentials credentials = CredentialUtils.getCredentialsProvider().getCredentials();
 
-        //Instantiate firehouse Client
-        AmazonKinesisFirehoseClient firehoseClient = new AmazonKinesisFirehoseClient(credentials);
-                //ConfigurationUtils.getClientConfigWithUserAgent());
-        // Validate that the stream exists and is active
-        validateStream(firehoseClient, streamName);
+            BasicAWSCredentials awsCreds = new BasicAWSCredentials("AKIAJRK24UQVD73GD2IA", "8hb2Msw1fbLL8S1db9s0UB08X7r3/bfRnUzYRT1F");
 
-        // Repeatedly send stock trades with a 100 milliseconds wait in between
-        StreamGenerator stockTradeGenerator = new StreamGenerator();
+            System.out.println("came till here");
+
+            //Instantiate firehouse Client
+            AmazonKinesisFirehoseClient firehoseClient = new AmazonKinesisFirehoseClient(awsCreds);
+
+            validateStream(firehoseClient, streamName);
+            System.out.println("but not here");
+
+            //generate Lead Data
+            StreamGenerator leadGenerator = new StreamGenerator();
+
+            //Path pt = new Path("hdfs://LBDEV3NN/dw/dataeng/cdc/reported_lead/2016/07/21/16/15/part-m-00000.gz");
+            //leadGenerator.readLines(pt, new Configuration());
+
         for(int i=0;i<15;i++) {
 
-            LeadData leadinfo = stockTradeGenerator.getRandomTrade();
+            LeadData leadinfo = leadGenerator.getRandomTrade();
             sendLeadInfo(leadinfo, firehoseClient, streamName);
         }
-        /*while(true) {
-            LeadData leadinfo = stockTradeGenerator.getRandomTrade();
-            sendLeadInfo(leadinfo, firehoseClient, streamName);
-
-            Thread.sleep(100);
-        }*/
-
-
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
     }
 }

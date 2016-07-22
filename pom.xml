@@ -18,232 +18,76 @@
         <pricingparent.version>2.4.1</pricingparent.version>
 
         <!-- Local filesystem installation users -->
-        <install.user>root</install.user>
-        <install.group>root</install.group>
+        <install.user>nkandavel</install.user>
+        <install.group>nkandavel</install.group>
         <!-- HDFS installation users -->
-        <hdfs.user>hdfs</hdfs.user>
-        <dwh.eng.user>svcs_dwh_eng</dwh.eng.user>
-        <local.install.dir>/opt/truecar/dwh-eng/leadreporting</local.install.dir>
-        <hdfs.oozie.dir>/user/${dwh.eng.user}/apps/leadreporting/oozie-workflow</hdfs.oozie.dir>
+        <hdfs.user>nkandavel</hdfs.user>
+        <dwh.eng.user>nkandavel</dwh.eng.user>
+        <local.install.dir>/home/nkandavel/opt/truecar/leadstreaming</local.install.dir>
+        <hdfs.oozie.dir>/user/nkandavel/apps/leadstreaming/oozie-workflow</hdfs.oozie.dir>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>3.8.1</version>
+            <version>4.12</version>
             <scope>test</scope>
         </dependency>
+
+
+
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.0</version>
+
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk -->
+
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk</artifactId>
-            <version>1.10.61</version>
+            <version>1.10.62</version>
+
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.amazonaws/amazon-kinesis-client -->
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>amazon-kinesis-client</artifactId>
-            <version>1.6.1</version>
-        </dependency>
+
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-core</artifactId>
             <version>0.20.2</version>
+
         </dependency>
+    <dependency>
+
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-client</artifactId>
+        <version>2.4.0.2.1.5.0-695</version>
+        <scope>provided</scope>
+    </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>amazon-kinesis-client</artifactId>
+            <version>1.6.1</version>
+
+        </dependency>
+
+
+
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>2.3.4</version>
+        </dependency>
+
+
+
+
     </dependencies>
 
-    <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <excludes>
-                    <exclude>log4j.xml</exclude>
-                </excludes>
-            </resource>
-        </resources>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>cobertura-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>com.truecar.di.maven</groupId>
-                <artifactId>json-validator-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>well-formed</goal>
-                        </goals>
-                        <configuration>
-                            <includes>
-                                <include>src/main/resources/**/*.json</include>
-                            </includes>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
 
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>com/truecar/common/*.java</exclude>
-                        <exclude>com/truecar/common/mdm/*.java</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-shade-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>with-deps</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>with-deps</shadedClassifierName>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-
-    <profiles>
-        <profile>
-            <activation>
-                <os>
-                    <family>linux</family>
-                </os>
-                <file>
-                    <exists>/usr/local/bin/rpmbuild</exists>
-                </file>
-            </activation>
-            <id>rpmbuild</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>rpm-maven-plugin</artifactId>
-                        <version>2.1-alpha-4</version>
-                        <executions>
-                            <execution>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>attached-rpm</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <summary>TCPricing Processing Job</summary>
-                            <group>Truecar/BI</group>
-                            <copyright>proprietary</copyright>
-                            <needarch>noarch</needarch>
-                            <targetOS>linux</targetOS>
-                            <requires>
-                                <require>jdk &gt;= 1.7.0</require>
-                            </requires>
-                            <mappings>
-                                <!-- Install oozie workflows and its resources/properties -->
-                                <mapping>
-                                    <directory>${local.install.dir}/oozie</directory>
-                                    <filemode>755</filemode>
-                                    <username>${install.user}</username>
-                                    <groupname>${install.group}</groupname>
-                                    <!-- Include sub-workflows directories-->
-                                    <directoryIncluded>true</directoryIncluded>
-                                    <sources>
-                                        <source>
-                                            <location>src/main/oozie/</location>
-                                        </source>
-                                    </sources>
-                                </mapping>
-
-                                <!-- Install your jar with dependencies to lib -->
-                                <mapping>
-                                    <directory>${local.install.dir}/lib</directory>
-                                    <filemode>755</filemode>
-                                    <username>${install.user}</username>
-                                    <groupname>${install.group}</groupname>
-                                    <directoryIncluded>false</directoryIncluded>
-                                    <artifact>
-                                        <classifiers>
-                                            <classifier>with-deps</classifier>
-                                        </classifiers>
-                                    </artifact>
-                                </mapping>
-                            </mappings>
-                            <postinstallScriptlet>
-                                <script>
-                                    # Substitute environmental values
-                                    python /usr/bin/tplize.py /etc/template_values \
-                                    ${local.install.dir}/oozie/coordinator.properties
-
-                                    chown -R ${dwh.eng.user} ${local.install.dir}
-
-                                    # Create project directory in HDFS
-                                    echo "Checking for ${hdfs.oozie.dir} existence"
-                                    sudo -u ${dwh.eng.user} hadoop fs -test -d ${hdfs.oozie.dir}
-                                    if [ "$?" = "0" ]; then
-                                    echo "Deleting existing workflow in ${hdfs.oozie.dir}"
-                                    sudo -u ${dwh.eng.user} hadoop fs -rm -r -skipTrash ${hdfs.oozie.dir}
-                                    fi
-                                    sudo -u ${dwh.eng.user} hadoop fs -mkdir -p ${hdfs.oozie.dir}
-
-                                    # Install oozie workflows
-                                    echo "Installing oozie files"
-                                    sudo -u ${dwh.eng.user} hadoop fs -copyFromLocal ${local.install.dir}/oozie/* \
-                                    ${hdfs.oozie.dir}
-
-                                    # Install the jar
-                                    echo "Installing tc-pricing jar"
-                                    sudo -u ${dwh.eng.user} hadoop fs -mkdir -p ${hdfs.oozie.dir}/lib
-                                    sudo -u ${dwh.eng.user} hadoop fs -copyFromLocal ${local.install.dir}/lib/*${version}-with-deps.jar \
-                                    ${hdfs.oozie.dir}/lib
-
-                                    echo "Installation completed successfully"
-                                </script>
-                            </postinstallScriptlet>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
-    <distributionManagement>
-        <repository>
-            <id>tcinternal</id>
-            <name>libs-release</name>
-            <url>http://maven1.code.wc.truecarcorp.com:8081/artifactory/libs-release-local</url>
-        </repository>
-        <snapshotRepository>
-            <id>snapshots</id>
-            <name>libs-snapshot</name>
-            <url>http://maven1.code.wc.truecarcorp.com:8081/artifactory/libs-snapshot-local</url>
-        </snapshotRepository>
-    </distributionManagement>
 
 
 </project>
+
