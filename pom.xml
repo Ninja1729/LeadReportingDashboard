@@ -45,12 +45,6 @@
 
         </dependency>
 
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk</artifactId>
-            <version>1.10.62</version>
-
-        </dependency>
 
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -65,13 +59,24 @@
         <version>2.4.0.2.1.5.0-695</version>
         <scope>provided</scope>
     </dependency>
+        <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk</artifactId>
+            <version>1.11.20</version>
+        </dependency>-->
 
+
+
+        <!-- https://mvnrepository.com/artifact/com.amazonaws/amazon-kinesis-client -->
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>amazon-kinesis-client</artifactId>
-            <version>1.6.1</version>
-
+            <version>1.6.2</version>
         </dependency>
+
+
+
 
 
 
@@ -85,7 +90,6 @@
 
 
     </dependencies>
-
 
     <build>
         <resources>
@@ -154,6 +158,7 @@
             <id>rpmbuild</id>
             <build>
                 <plugins>
+
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>rpm-maven-plugin</artifactId>
@@ -190,9 +195,6 @@
                                         </source>
                                     </sources>
                                 </mapping>
-
-
-
                                 <!-- Install your jar with dependencies to lib -->
                                 <mapping>
                                     <directory>${local.install.dir}/lib</directory>

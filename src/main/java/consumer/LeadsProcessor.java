@@ -13,8 +13,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.net.InetAddress;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
+import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
+import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
@@ -39,25 +44,29 @@ public class LeadsProcessor implements IRecordProcessor {
 
     private Settings settings;
     private Client client;
+    public static final String ELASTICSEARCH_CLUSTER = "dev-app";
 
 
     /**
      * {@inheritDoc}
      */
-    // TODO: 7/22/16 remove hardcode for elastic search 
-    // TODO: 7/22/16 catch exception in lower level 
     public void initialize(String shardId) {
-        System.out.print("am here baby!");
+
+        //Set the elastic search cluster
         settings = Settings.settingsBuilder()
-                .put("cluster.name", "dev-app").build();
+                .put("cluster.name", ELASTICSEARCH_CLUSTER).build();
         try {
             client = TransportClient.builder().settings(settings).build()
                     .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("10.74.163.110"), 9300));
         }catch (Exception e){
             System.out.println(e.getMessage());
         }
+        //initialize shards
         System.out.print("Initializing record processor for shard: " + shardId);
         this.kinesisShardId = shardId;
+
+        // CreateIndexResponse ir = client.admin().indices().create(new CreateIndexRequest("twitter3")).actionGet();
+        // System.out.print(ir.isAcknowledged());
 
     }
 
@@ -66,10 +75,9 @@ public class LeadsProcessor implements IRecordProcessor {
      */
 
     public void processRecords(List<Record> records, IRecordProcessorCheckpointer checkpointer) {
-        System.out.println("came here baby!!!!!!!!!!!"+number++);
+
         for (Record record : records) {
             // process record
-            //System.out.println(record.getData());
             processRecord(record);
         }
 
@@ -87,21 +95,24 @@ public class LeadsProcessor implements IRecordProcessor {
         System.out.println(leadinfo);
 
         try {
-            // CreateIndexResponse ir = client.admin().indices().create(new CreateIndexRequest("twitter2")).actionGet();
-            // System.out.print(ir.isAcknowledged());
-
+            //Put the lead info as json
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+            Date date = df.parse(leadinfo.getLead_date());
+            System.out.print(date.toString());
 
             XContentBuilder builder = jsonBuilder()
                     .startObject()
-                    .field("id", leadinfo.getLead_id())
-                    .field("leadDate", leadinfo.getLead_date())
-                    .field("type", leadinfo.getLead_email())
-                    .field("email", leadinfo.getLead_type())
+                    .field("leadId", leadinfo.getLead_id())
+                    .field("leadDate", date)
+                    .field("leadType", leadinfo.getLead_email())
+                    .field("leadEmail", leadinfo.getLead_type())
                     .endObject();
 
-            IndexResponse response = client.prepareIndex("reported_lead", "leaddata", Integer.toString(number))
+            //index lead data
+            IndexResponse response = client.prepareIndex("reported_lead1", "rtype")
                     .setSource(builder)
                     .get();
+            System.out.print(response.isCreated());
         } catch(Exception ex) {
             System.out.print(ex.getMessage());
         }

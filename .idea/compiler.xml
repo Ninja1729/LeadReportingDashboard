@@ -22,11 +22,11 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
-        <module name="LeadReportingDashboard" />
+        <module name="rtd" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="LeadReportingDashboard" target="1.7" />
+      <module name="rtd" target="1.7" />
     </bytecodeTargetLevel>
   </component>
 </project>

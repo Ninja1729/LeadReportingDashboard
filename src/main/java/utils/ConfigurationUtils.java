@@ -22,6 +22,8 @@ public class ConfigurationUtils {
         userAgent.append(VERSION);
 
         config.setUserAgent(userAgent.toString());
+        config.setProxyHost("squid.common.lb.truecarcorp.com");
+        config.setProxyPort(3128);
 
         return config;
     }

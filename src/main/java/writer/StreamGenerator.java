@@ -1,5 +1,6 @@
 package writer;
 
+import com.amazonaws.services.kinesis.AmazonKinesis;
 import model.LeadData;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -8,6 +9,9 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionCodecFactory;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
@@ -16,6 +20,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static writer.StreamWriter.sendLeadInfo;
+
 /**
  * Created by nkandavel on 7/7/16.
  */
@@ -75,7 +82,15 @@ public class StreamGenerator
         }
     }
 
-    public static LeadData readLines(Path location, Configuration conf) throws Exception {
+    /**
+     * Read hdfs data
+     *
+     */
+    public static LeadData readLines(Path location, Configuration conf, AmazonKinesis kinesisClient, String streamName) throws Exception {
+        final Logger log;
+        log = LoggerFactory.getLogger(LeadProducerKinesis.class);
+
+
         LeadData ld = null;
         FileSystem fileSystem = FileSystem.get(location.toUri(), conf);
         CompressionCodecFactory factory = new CompressionCodecFactory(conf);
@@ -106,9 +121,19 @@ public class StreamGenerator
             String raw = writer.toString();
             String[] resulting = raw.split("\n");
             for(String str: raw.split("\n")) {
-                String[] s1 = str.split("\u0001");
-                ld = new LeadData(Long.parseLong(s1[0]),s1[2],s1[2],s1[3]);
+                if (!str.isEmpty()) {
+                    String[] s = str.split("\u0001");
 
+                    s[0] = s[0].replace("\"", "");
+                    s[1] = s[1].replace("\"", "");
+                    s[2] = s[2].replace("\"", "");
+                    s[7] = s[7].replace("\"", "");
+                    //System.out.print(s[1]+s[7]);
+                    ld = new LeadData(Long.parseLong(s[0]), s[1], s[2], s[7]);
+                    sendLeadInfo(ld, kinesisClient, streamName);
+                }else{
+                    log.info("string is empty");
+                }
 
             }
         }

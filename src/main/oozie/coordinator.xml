@@ -1,15 +1,34 @@
-<coordinator-app name="ninja-cordinator" frequency="${coord:days(1)}"
-                 start="2016-07-18T14:40Z"
-                 end="${ed}"
+<coordinator-app name="ninja-cordinator" frequency="${coord:minutes(15)}"
+                 start="2016-07-29T10:20Z"
+                 end="2016-07-31T23:01Z"
                  timezone="UTC"
                  xmlns="uri:oozie:coordinator:0.2">
     <controls>
         <concurrency>1</concurrency>
     </controls>
 
+    <datasets>
+        <!-- Input datasets-->
+        <dataset name="lead-input" frequency="${coord:minutes(15)}"
+                 initial-instance="2014-01-01T00:00Z" timezone="UTC">
+            <uri-template>${nameNode}/${leadReportLocation}/${YEAR}/${MONTH}/${DAY}/${HOUR}/${MINUTE}</uri-template>
+            <done-flag></done-flag>
+        </dataset>
+    </datasets>
+    <input-events>
+        <data-in name="lead-input-fifteen" dataset="lead-input">
+            <instance>${coord:current(0)}</instance>
+        </data-in>
+    </input-events>
     <action>
         <workflow>
             <app-path>/user/nkandavel/testaws/</app-path>
+            <configuration>
+                <property>
+                    <name>leadInputFile</name>
+                    <value>${coord:dataIn('lead-input-fifteen')}/part-m-00000.gz</value>
+                </property>
+            </configuration>
         </workflow>
     </action>
 </coordinator-app>
